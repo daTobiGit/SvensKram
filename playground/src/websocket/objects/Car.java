@@ -42,10 +42,8 @@ public class Car {
 	}
 	
 	public void parseJson(JSONObject jsonObject){
-		this.x = jsonObject.getDouble("X");
-		this.y = jsonObject.getDouble("Y");
-		this.angle = jsonObject.getDouble("Angle");
-		this.heading = jsonObject.getDouble("Heading");
+		this.acceleration = jsonObject.getDouble("acc");
+		this.direction = jsonObject.getDouble("dir");
 	}
 	
 	public JSONObject getJsonString(){

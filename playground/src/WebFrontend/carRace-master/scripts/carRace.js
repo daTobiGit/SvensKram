@@ -74,6 +74,8 @@ function game( canvasID )
 		
 		iH = new InputHandler();
 		
+		webSocketHandler.connect();
+		
 		map			= new MapEntity( "images/map.jpg", ctx, true, canvas.width/2, canvas.height/2, false );
 		playerCar	= new MapEntity( "images/top.png", ctx, true, canvas.width/2, canvas.height/2, true );
 	}

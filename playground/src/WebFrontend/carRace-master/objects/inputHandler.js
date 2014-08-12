@@ -47,6 +47,9 @@ function InputHandler()
 			default:
 				break;
 		}
+		var websocketMsg = {"type":"position", "dir":direction, "acc":acceleration};
+		var msg = JSON.stringify(websocketMsg);
+		webSocketHandler.sendMessage(msg);
 	}
 	
 	var handleKeyRelease = function( key )
@@ -64,6 +67,9 @@ function InputHandler()
 			default:
 				break;
 		}
+		var websocketMsg = {"type":"position", "dir":direction, "acc":acceleration};
+		var msg = JSON.stringify(websocketMsg);
+		webSocketHandler.sendMessage(msg);
 	}
 	
 	this.update = function( dt )
