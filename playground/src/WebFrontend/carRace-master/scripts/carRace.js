@@ -27,12 +27,12 @@ window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequest
 
 function updateCars(obj)
 {
-	if(obj.update === 0)
+	if(obj.own === true)
 	{
 		updateOwn(obj);
 	}
 	
-	if(obj.update === 1)
+	if(obj.own === false)
 	{
 		updateEnemy(obj);
 	}
@@ -95,17 +95,15 @@ function game( canvasID )
 		dt = ( thisTime - lastTime ) / 1000;
 		lastTime = thisTime;
 	
-//		iH.update( dt );
+		iH.update( dt );
 	
 		ctx.clear();
-//		map.draw( iH.posX, iH.posY, 0 );
-		map.draw( ownData.X, ownData.Y, 0 );
-//		playerCar.draw( 0, 0, iH.carHeading );
-		playerCar.draw( 0, 0, ownData.Heading );
+		map.draw( iH.posX, iH.posY, 0 );
+		playerCar.draw( 0, 0, iH.carHeading );
 		
 		$.each(enemyData, function(key, value)
 				{
-					enemyCar[key].draw(-(value.X) + ownData.X, -(value.Y) + ownData.Y, value.Heading);	
+					enemyCar[key].draw(-(value.x) + ownData.x, -(value.y) + ownData.y, value.heading);	
 				}
 		);		
 		requestAnimationFrame( gameLoop );

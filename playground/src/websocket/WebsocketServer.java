@@ -1,8 +1,9 @@
 package websocket;
 
 import java.io.IOException;
-import java.util.Date;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.websocket.CloseReason;
@@ -18,33 +19,20 @@ import org.glassfish.tyrus.server.Server;
 import org.json.JSONObject;
 
 import websocket.objects.Car;
-import websocket.utils.CarUpdater;
 
 @ServerEndpoint(value = "/game")
 public class WebsocketServer {
 
 	public static boolean closed = false;
 	
-	private static Date thisTime;
-	private static Date lastTime = new Date();
-	
-	
-	public WebsocketServer() {
-		new CarUpdater.calcThread().start();
-	}
-	
-	public static double getTime(){
-		thisTime = new Date();
-		double dt = ( thisTime.getTime() - lastTime.getTime() ) / 1000;
-		lastTime = thisTime;
-		return dt;
-	}
+	public static List<Session> sessions = new ArrayList<>();
+	public static Map<String, Car> carPosition = new HashMap<>();
 	
 	@OnOpen
 	public void onOpen(Session session) {
 		System.out.println("Connected ... " + session.getId());
-		CarUpdater.sessions.add(session);
-		CarUpdater.carPosition.put(session.getId(), new Car(session.getId()));
+		sessions.add(session);
+		carPosition.put(session.getId(), new Car());
 	}
 
 	@OnMessage
@@ -52,8 +40,14 @@ public class WebsocketServer {
 		JSONObject jsonMessageObject = new JSONObject(message);
 		String type = jsonMessageObject.getString("type");
 		if("position".equals(type)){
-			Car car = CarUpdater.carPosition.get(session.getId());
+			Car car = carPosition.get(session.getId());
 			car.parseJson(jsonMessageObject);
+			System.out.println(car);
+			try {
+				this.sendToAllOtherSession(session.getId(), jsonMessageObject);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}else{
 			switch (message) {
 				case "quit":
@@ -66,6 +60,14 @@ public class WebsocketServer {
 					break;
 			    default:
 			    	System.out.println(message);
+			}
+		}
+	}
+
+	private void sendToAllOtherSession(String id, JSONObject jsonObject) throws IOException {
+		for (Session session : sessions) {
+			if(!session.getId().equals(id) && session.isOpen()){
+				session.getBasicRemote().sendText(jsonObject.toString());
 			}
 		}
 	}
