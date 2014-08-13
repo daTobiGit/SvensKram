@@ -11,8 +11,8 @@ function InputHandler()
 	var wheelBase = 60;
 	var oneDegree = Math.PI / 180;
 	
-	this.posX = 0;
-	this.posY = 0;
+	this.posX = 1;
+	this.posY = 1;
 	this.carHeading = 0;
 	
 	var init = function()
@@ -26,6 +26,16 @@ function InputHandler()
 		{
 			handleKeyRelease( event.which );
 		} );
+	}
+	
+	this.setSpeed = function( s )
+	{
+		carSpeed = s;
+	}
+	
+	this.setHeading = function( h )
+	{
+		carHeading = h;
 	}
 	
 	var handleKeyPress = function( key )

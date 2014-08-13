@@ -25,47 +25,31 @@ Array.prototype.remove = function(from, to) {
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
 /* IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT */
 
-function updateCars(obj)
-{
-	if(obj.own === true)
-	{
-		updateOwn(obj);
-	}
-	
-	if(obj.own === false)
-	{
-		updateEnemy(obj);
-	}
-}
+enemyData = [];
 
-ownData = {};
-function updateOwn(obj){
-	ownData = obj;
-}
-
-enemyData = {};
-enemyCar = {};
 function updateEnemy(enemyObject)
 {
-	var id = enemyObject.id;
-	enemyData[id] = enemyObject;
-	
-	if(!enemyCar[id])
-	{
-		enemyCar[id] = new MapEntity( "images/top.png", ctx, true, canvas.width/2, canvas.height/2, true);
-	}
+	enemyData[0] = enemyObject;	
 }
 
 function game( canvasID )
 {
+	var _this = this;
+
 	var map;
-	var playerCar; 
+	var playerCar;
+	var enemyCar;
+	var img;
+	var offscreenCanvas;
+	var offscreenCtx;
 	
 	var iH;
 	
 	var lastTime;
 	var thisTime;
 	var dt;
+	
+	
 	
 	var init = function()
 	{
@@ -74,10 +58,23 @@ function game( canvasID )
 		
 		iH = new InputHandler();
 		
-		webSocketHandler.connect();
-		
 		map			= new MapEntity( "images/map.jpg", ctx, true, canvas.width/2, canvas.height/2, false );
+		img = new Image();
+		img.onload = setOffscreenCanvas;
+		img.src = "images/map.jpg";
+	
 		playerCar	= new MapEntity( "images/top.png", ctx, true, canvas.width/2, canvas.height/2, true );
+		enemyCar	= new MapEntity( "images/top.png", ctx, true, canvas.width/2, canvas.height/2, true);
+	}
+	
+	var setOffscreenCanvas = function()
+	{
+		offscreenCanvas = $('<canvas/>')[0];
+		offscreenCanvas.width = img.width;
+		offscreenCanvas.height = img.height;
+		offscreenCtx = offscreenCanvas.getContext('2d');
+		offscreenCtx.drawImage(img, 0, 0, img.width, img.height);
+		_this.start();
 	}
 	
 	this.start = function()
@@ -95,20 +92,37 @@ function game( canvasID )
 		dt = ( thisTime - lastTime ) / 1000;
 		lastTime = thisTime;
 	
+		/* update positions */
 		iH.update( dt );
-	
+		if( offroad( iH.posX, iH.posY ) )
+		{
+			iH.posX = 1;
+			iH.posY = 1;
+			iH.setSpeed( 0 );
+			iH.setHeading( 0.87 );
+		}
+		
+		/* draw objects */
 		ctx.clear();
 		map.draw( iH.posX, iH.posY, 0 );
 		playerCar.draw( 0, 0, iH.carHeading );
 		
-		$.each(enemyData, function(key, value)
-				{
-					enemyCar[key].draw(-(value.x) + ownData.x, -(value.y) + ownData.y, value.heading);	
-				}
-		);		
+		if(enemyData[0]){
+			enemyCar.draw(-(enemyData[0].X) + iH.posX, -(enemyData[0].Y) + iH.posY, enemyData[0].Heading);
+		}
+		
 		requestAnimationFrame( gameLoop );
 	}
 
+	var offroad = function( x, y )
+	{
+		if( x < 0 || y < 0 || x > 4000 || y > 4000 ){ return true; }
+		var data = offscreenCtx.getImageData( x, y, 1, 1 ).data;
+		console.log( "0:" + data[0] + " 1:" + data[1] + " 2:" + data[2] );
+		if( data[0] == 0 && data[1] == 0 && data[2] == 0 ){ return false; } // black is street
+		return true;
+	}
+	
 	init();
 }
 
@@ -118,5 +132,4 @@ function game( canvasID )
 $( function()
 {
 	myGame = new game( "#view" );
-	myGame.start();
 });

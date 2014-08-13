@@ -19,8 +19,8 @@ var webSocketHandler =
 	   this.ws.onmessage = function(msg)
 	   {
 		   console.log(msg.data);
-		   var obj = eval("(" + msg.data + ")");		   
-		   updateCars(obj);
+		   var obj = eval("(" + msg.data + ")");
+		   updateEnemy(obj);
 	   };
 	   this.ws.onerror = function(error)
 	   {
