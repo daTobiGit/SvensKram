@@ -49,7 +49,7 @@ function game( canvasID )
 	var thisTime;
 	var dt;
 	
-	
+	var currentWayPoint = 0;
 	
 	var init = function()
 	{
@@ -94,17 +94,19 @@ function game( canvasID )
 	
 		/* update positions */
 		iH.update( dt );
+		checkWaypoint( iH.posX, iH.posY );
 		if( offroad( iH.posX, iH.posY ) )
 		{
-			iH.posX = 1;
-			iH.posY = 1;
+			iH.posX = waypointList[currentWayPoint].spawnX;
+			iH.posY = waypointList[currentWayPoint].spawnY;
+			iH.carHeading = waypointList[currentWayPoint].heading;
 			iH.setSpeed( 0 );
-			iH.setHeading( 0.87 );
 		}
 		
 		/* draw objects */
 		ctx.clear();
 		map.draw( iH.posX, iH.posY, 0 );
+		drawWaypoints( iH.posX, iH.posY );
 		playerCar.draw( 0, 0, iH.carHeading );
 		
 		if(enemyData[0]){
@@ -118,15 +120,49 @@ function game( canvasID )
 	{
 		if( x < 0 || y < 0 || x > 4000 || y > 4000 ){ return true; }
 		var data = offscreenCtx.getImageData( x, y, 1, 1 ).data;
-		console.log( "0:" + data[0] + " 1:" + data[1] + " 2:" + data[2] );
 		if( data[0] == 0 && data[1] == 0 && data[2] == 0 ){ return false; } // black is street
 		return true;
 	}
 	
+	var checkWaypoint = function( x, y )
+	{
+		for( var i = 0; i < waypointList.length; i++ )
+		{
+			if( x > waypointList[i].sX && x < waypointList[i].eX && y > waypointList[i].sY && y < waypointList[i].eY )
+			{
+				// deactivate old waypoint
+				waypointList[ currentWayPoint ].active = false;
+				
+				// set new waypoint
+				currentWayPoint = i;
+				waypointList[i].active = true;
+				return;
+			}
+		}
+	}
+	
+	var drawWaypoints = function( x, y )
+	{
+		for( var i = 0; i < waypointList.length; i++ )
+		{
+			ctx.save();
+			ctx.beginPath();
+			ctx.translate( waypointList[i].spawnX + 400 - x , waypointList[i].spawnY + 400 - y );
+			ctx.arc( 0, 0, 35, 0, 2 * Math.PI, false);
+			if( waypointList[i].active )
+			{
+				ctx.fillStyle = '#0FF2F2';
+				ctx.fill();
+			}
+			ctx.lineWidth = 10;
+			ctx.strokeStyle = '#00ff00';
+			ctx.stroke();
+			ctx.restore();
+		}
+	}
+	
 	init();
 }
-
-
 
 // SETUP HTML PAGE
 $( function()
