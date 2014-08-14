@@ -25,11 +25,15 @@ Array.prototype.remove = function(from, to) {
 window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
 /* IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT  IMPORTANT */
 
-enemyData = [];
 
+enemyData = {};
 function updateEnemy(enemyObject)
 {
-	enemyData[0] = enemyObject;	
+	if(!enemyCar[enemyObject.id])
+	{
+		enemyCar[enemyObject.id] = new MapEntity( "images/top.png", ctx, true, canvas.width/2, canvas.height/2, true);
+	}
+	enemyData[enemyObject.id] = enemyObject;	
 }
 
 function game( canvasID )
@@ -38,7 +42,7 @@ function game( canvasID )
 
 	var map;
 	var playerCar;
-	var enemyCar;
+	var enemyCar = {};
 	var img;
 	var offscreenCanvas;
 	var offscreenCtx;
@@ -64,7 +68,6 @@ function game( canvasID )
 		img.src = "images/map.jpg";
 	
 		playerCar	= new MapEntity( "images/top.png", ctx, true, canvas.width/2, canvas.height/2, true );
-		enemyCar	= new MapEntity( "images/top.png", ctx, true, canvas.width/2, canvas.height/2, true);
 	}
 	
 	var setOffscreenCanvas = function()
@@ -109,9 +112,11 @@ function game( canvasID )
 		drawWaypoints( iH.posX, iH.posY );
 		playerCar.draw( 0, 0, iH.carHeading );
 		
-		if(enemyData[0]){
-			enemyCar.draw(-(enemyData[0].X) + iH.posX, -(enemyData[0].Y) + iH.posY, enemyData[0].Heading);
-		}
+		$.each(enemyData, function(key, value)
+				{
+					enemyCar[key].draw(-(value.X) + iH.posX, -(value.Y) + iH.posY, value.Heading);
+				}
+		)
 		
 		requestAnimationFrame( gameLoop );
 	}

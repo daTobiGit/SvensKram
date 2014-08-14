@@ -32,7 +32,7 @@ public class WebsocketServer {
 	public void onOpen(Session session) {
 		System.out.println("Connected ... " + session.getId());
 		sessions.add(session);
-		carPosition.put(session.getId(), new Car());
+		carPosition.put(session.getId(), new Car(session.getId()));
 	}
 
 	@OnMessage
@@ -42,12 +42,13 @@ public class WebsocketServer {
 		if("position".equals(type)){
 			Car car = carPosition.get(session.getId());
 			car.parseJson(jsonMessageObject);
-			System.out.println(car);
-			try {
-				this.sendToAllOtherSession(session.getId(), jsonMessageObject);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+//			System.out.println(car);
+			this.sendToAllOtherSession(session.getId(), jsonMessageObject);
+		}else if("start".equals(type)){
+			Car car = carPosition.get(session.getId());
+			car.parseStartJson(jsonMessageObject);
+			System.out.println("Start: " + car);
+			this.sendToAllOtherSession(session.getId(), jsonMessageObject);
 		}else{
 			switch (message) {
 				case "quit":
@@ -64,11 +65,15 @@ public class WebsocketServer {
 		}
 	}
 
-	private void sendToAllOtherSession(String id, JSONObject jsonObject) throws IOException {
-		for (Session session : sessions) {
-			if(!session.getId().equals(id) && session.isOpen()){
-				session.getBasicRemote().sendText(jsonObject.toString());
+	private void sendToAllOtherSession(String id, JSONObject jsonObject) {
+		try {
+			for (Session session : sessions) {
+				if(!session.getId().equals(id) && session.isOpen()){
+					session.getBasicRemote().sendText(jsonObject.toString());
+				}
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
